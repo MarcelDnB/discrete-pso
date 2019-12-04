@@ -1,0 +1,47 @@
+globals [
+  global-best-pos ;gonna be a set
+  global-best-value ;gonna be a set
+  ;fitness function to optimize, *not necessarily here
+  U
+]
+
+breed [AI:particles AI:particle]
+
+AI:particles-own [
+  velocity ;The velocity is a set of operation pairs (Vi(t) be the velocity of particle i at iteration t)
+  pos ;The position is a set of elements from the universe of discourse U (Xi(t) be the position of particle i at iteration t, a subset of U)
+  personal-best-value ;gonna be a set
+  personal-best-pos ;gonna be a set
+  evaluation ;gonna be a set
+]
+; ATRACCION
+; En PSO la particula estaba atraida por el personal best, global best, etc. En SBPSO ocurre la misma atraccion por el personal best
+; Si te fijas en la la figura b que hay en el pdf el movimiento de X(t) hacia Y(t) en SBPSO significa que los dos sets se hacen mas similares con
+; eliminar los elementos de X(t) que no estan en Y(t) y añadiendo a X(t) los elementos que faltan en Y(t) y los elementos que estan en los dos sets
+; no se ven afectados por esta atraccion.
+
+; VELOCIDAD
+; La velocidad la vamos a denotar mediante un par de elementos, que va a consistir en la adicion y supresion de elementos. 
+; Como ejemplo: Considerando la posicion X = {a, c} y velocidad V = {(+,b), (−, c)}, añadir la velocidad V a la posicion X significa que el elemento
+; b se va a añadir mientras que el elemento c se va a suprimir, quedando una posicion: X'= {a,b}
+; La velocidad sigue la siguiente fórmula: vi,j(t + 1) = w vi,j(t)+c1*r1,j(t) [yi, j(t)−xi, j(t)]+c2*r2,j(t) [ˆyi,j(t) − xi,j(t)]
+
+; A particle is an subset of U
+; Population: number of particles to be created
+; Dimesion: dimension of U
+
+to AI:Create-particles [#population #dimension]
+  create-AI:particles #population [
+    set pos n-values #dimension [random U]
+    ; Give initial velocities with a normal distribution
+    set velocity n-values #dimension  [(random-normal 0 1)]
+    set evaluation AI:evaluation
+    ; The starting position is the initial best personal value
+    
+    set personal-best-value evaluation
+    set personal-best-pos pos
+  ]
+  let best min-one-of (AI:particles with-max [evaluation]) [who]
+  set global-best-value [personal-best-value] of best
+  set global-best-pos [personal-best-pos] of best
+end
