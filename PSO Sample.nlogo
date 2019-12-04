@@ -1,6 +1,6 @@
 ;--------------------------------- Load PSO Module ---------------------------------------------
 
-__includes ["PSO.nls"]
+__includes ["SBPSO.nls"]
 
 ;-----------------------------------------------------------------------------------------------
 
@@ -50,7 +50,7 @@ to setup
 end
 
 to Launch
-  let best AI:PSO 200
+  let best AI:SBPSO 200
                   inercia-particula
                   atraccion-mejor-personal
                   atraccion-mejor-global
