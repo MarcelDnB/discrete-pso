@@ -1,82 +1,72 @@
+;# This is based on fsancho PSO.nls im using that as a template or almost :)
+;# The thing is, SBPSO works in a different way compared to PSO. One thing is that graphically we can't say that elements are near or far away from each other, because we have  
+;# just a set of numbers with no positions and no order. Now, in terms of velocity and position, our position is a set of numbers contained in our universe set (U) and this 
+;# position has a value returned by a fitness function and with this value we can say what position is better. A velocity is another set of numbers with variable size but
+;# it contains also an operator which indicates an addition or subtraction of that element in our current set of position, so if we have something like this:
+;# Position: X = {a, c} (considering size of 2 elements it can be more..) and Velocity: V = {(+,b), (−, c)} (considering size of 2 pairs of elements it can be more..)
+;# then we will get a returned position of: ResultPosition: X'= {a,b}. 
+;# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
 globals [
-  global-best-pos ;gonna be a set
-  global-best-value ;gonna be a set
-  U
+  global-best-pos ;gonna be a set which stores the global best set (position)
+  global-best-value ;gonna be a set which stores the value of that position (fitness function return)
+  U ;gonna be a set, basically our search space
 ]
 
 breed [AI:particles AI:particle]
 
 AI:particles-own [
-  velocity ;The velocity is a set of operation pairs (Vi(t) be the velocity of particle i at iteration t)
-  pos ;The position is a set of elements from the universe of discourse U (Xi(t) be the position of particle i at iteration t, a subset of U)
-  personal-best-value ;gonna be a set
-  personal-best-pos ;gonna be a set
-  evaluation ;gonna be a set
+  velocity ;The velocity is a set of operation pairs {(+,a),(-,b)..}
+  pos ;The position is a set of elements from the universe of discourse (U) 
+  personal-best-value ;gonna be the best value found of the pos below
+  personal-best-pos ;gonna be the best set found 
+  evaluation ; This is the returned value of fitness function of this particle position
 ]
-; ATRACCION
-; En PSO la particula estaba atraida por el personal best, global best, etc. En SBPSO ocurre la misma atraccion por el personal best
-; Si te fijas en la la figura b que hay en el pdf el movimiento de X(t) hacia Y(t) en SBPSO significa que los dos sets se hacen mas similares con
-; eliminar los elementos de X(t) que no estan en Y(t) y añadiendo a X(t) los elementos que faltan en Y(t) y los elementos que estan en los dos sets
-; no se ven afectados por esta atraccion.
 
-; VELOCIDAD
-; La velocidad la vamos a denotar mediante un par de elementos, que va a consistir en la adicion y supresion de elementos. 
-; Como ejemplo: Considerando la posicion X = {a, c} y velocidad V = {(+,b), (−, c)}, añadir la velocidad V a la posicion X significa que el elemento
-; b se va a añadir mientras que el elemento c se va a suprimir, quedando una posicion: X'= {a,b}
-; La velocidad sigue la siguiente fórmula: vi,j(t + 1) = w vi,j(t)+c1*r1,j(t) [yi, j(t)−xi, j(t)]+c2*r2,j(t) [ˆyi,j(t) − xi,j(t)]
-
-; A particle is an subset of U
-; Population: number of particles to be created
-; Dimesion: dimension of U
-; AI:evaluation es el valor de la particula, es decir, la salida de f(Xi), la f.fitness estará en el .nlogo que incluya este .nls
-
-to AI:Create-particles [#population #dimension]
-  create-AI:particles #population [
-    ;random elements of our U
-    set pos n-values #dimension [random U]
-    set velocity [] ;velocity set size same as pos?
-    set evaluation AI:evaluation
-    ; The starting position is the initial best personal value
-    
-    set personal-best-value evaluation
-    set personal-best-pos pos
+to AI:Create-particles [#population #dimension] ;Dimension will be the size of our particle position set and Population will be the number of particles
+  create-AI:particles #population [ ;Creates #population number of particles
+    set pos n-values #dimension [random U] ;random elements of our U
+    set velocity [] ;creates an empty list velocity variable
+    set evaluation AI:evaluation ;AI:evaluation needs to be provided by the program which runs along with this .nls (like knapsack problem) which has the fitness function
+    set personal-best-value evaluation ;The value of the position below (initial)
+    set personal-best-pos pos ;The starting position is the initial best personal value (initial)
   ]
-  let best min-one-of (AI:particles with-max [evaluation]) [who]
-  set global-best-value [personal-best-value] of best
-  set global-best-pos [personal-best-pos] of best
+  let best min-one-of (AI:particles with-max [evaluation]) [who] ;Store the best particle yet
+  set global-best-value [personal-best-value] of best ;Store the value of best
+  set global-best-pos [personal-best-pos] of best ;Store the pos (set) of best
 end
-
 
 ; Main Procedure report. It gives iter repetitions of step function, and returns the 
 ; position and value of the (possibly local) maximum found.
 
-to-report AI:SBPSO [#iters #inertia-particle #atraction-best-personal #atraction-best-global #lim-vel-particles]
+to-report AI:SBPSO [#iters #inertia-particle #atraction-best-personal #atraction-best-global #lim-vel-particles] 
   repeat #iters [
-    AI:SBPSO-step #inertia-particle #atraction-best-personal #atraction-best-global #lim-vel-particles
+    AI:SBPSO-step #inertia-particle #atraction-best-personal #atraction-best-global #lim-vel-particles ;Calling the main function
     AI:PSOExternalUpdate
   ]
   report (list global-best-value global-best-pos)
 end
 
-
 ; Step procedure where the PSO lgorithm is executing
 to AI:SBPSO-step [#inertia-particle #atraction-best-personal #atraction-best-global #lim-vel-particles]
-  ; First, check if the best values mus be updated (personals and global)
-  ask AI:particles [    
-    if evaluation > personal-best-value
+  ; First, check if the best values must be updated (personals and global)
+  ask AI:particles [
+    if evaluation > personal-best-value ;In this case we need to update the personal best position
     [
-      set personal-best-value evaluation
-      set personal-best-pos pos
+      set personal-best-value evaluation ;Changing its value with the new best found
+      set personal-best-pos pos ;Changing its pos set with the new best found
     ]
-;    if global-best-value < personal-best-value
-;    [
-;      set global-best-value personal-best-value
-;      set global-best-pos personal-best-pos
-;    ]
   ]
-  let best min-one-of (AI:particles with-max [personal-best-value]) [who]
-  set global-best-value [personal-best-value] of best
-  set global-best-pos [personal-best-pos] of best
+  let best min-one-of (AI:particles with-max [personal-best-value]) [who] ;We update the global best too if its the case
+  set global-best-value [personal-best-value] of best ;Same
+  set global-best-pos [personal-best-pos] of best ;Same
+
+
+
+
+;Now comes the hard part, we need to create some aux functions to implement all the operators listed, and to be able to work with the different kind of sets that we have here
+;code below not valid part of the "template"
 
   ; Then, update velocities and positions of every particle
   ask AI:particles
@@ -142,4 +132,22 @@ end
 ;end
 ;end
 
+
+
+; Irrelevant stuff
+; ATRACCION
+; En PSO la particula estaba atraida por el personal best, global best, etc. En SBPSO ocurre la misma atraccion por el personal best
+; Si te fijas en la la figura b que hay en el pdf el movimiento de X(t) hacia Y(t) en SBPSO significa que los dos sets se hacen mas similares con
+; eliminar los elementos de X(t) que no estan en Y(t) y añadiendo a X(t) los elementos que faltan en Y(t) y los elementos que estan en los dos sets
+; no se ven afectados por esta atraccion.
+
+; VELOCIDAD
+; La velocidad la vamos a denotar mediante un par de elementos, que va a consistir en la adicion y supresion de elementos. 
+; Como ejemplo: Considerando la posicion X = {a, c} y velocidad V = {(+,b), (−, c)}, añadir la velocidad V a la posicion X significa que el elemento
+; b se va a añadir mientras que el elemento c se va a suprimir, quedando una posicion: X'= {a,b}
+
+; A particle is an subset of U
+; Population: number of particles to be created
+; Dimesion: dimension of U
+; AI:evaluation es el valor de la particula, es decir, la salida de f(Xi), la f.fitness estará en el .nlogo que incluya este .nls
 
