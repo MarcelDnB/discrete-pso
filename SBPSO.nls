@@ -7,7 +7,7 @@
 ;# then we will get a returned position of: ResultPosition: X'= {a,b}. 
 ;# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-
+extensions[Rnd]
 globals [
   global-best-pos ;gonna be a set which stores the global best set (position)
   global-best-value ;gonna be a set which stores the value of that position (fitness function return)
@@ -62,9 +62,6 @@ to AI:SBPSO-step [#inertia-particle #atraction-best-personal #atraction-best-glo
   set global-best-value [personal-best-value] of best ;Same
   set global-best-pos [personal-best-pos] of best ;Same
 
-
-
-
 ;Now comes the hard part, we need to create some aux functions to implement all the operators listed, and to be able to work with the different kind of sets that we have here
 ;code below not valid part of the "template"
 
@@ -93,6 +90,47 @@ to AI:SBPSO-step [#inertia-particle #atraction-best-personal #atraction-best-glo
   ]
 end
 
+;AUXILIARY FUNCTIONS
+
+to-report union [set1 set2]
+  let ret se set1 set2
+  report remove-duplicates ret
+end
+
+to-report difference [set1 set2] ; 0 -> "+", 1 -> "-"
+  let differenceSet filter [x -> not member? x set2] set1
+  let first-op[]
+  let second-op[]
+  let aux[]
+  foreach differenceSet [x -> 
+    set aux lput 0 aux
+    set aux lput x aux
+    set first-op lput aux first-op
+    set aux []
+  ]
+  set differenceSet filter [x -> not member? x set1] set2
+   foreach differenceSet [x -> 
+    set aux lput 1 aux
+    set aux lput x aux
+    set first-op lput aux first-op
+    set aux []
+  ]
+  report (union first-op second-op)
+end
+;rnd:weighted-one-of-list list anonymous-reporter
+;The probability of each item being picked is proportional to the weight given by the anonymous-reporter for that item. 
+
+to-report randPickVel [V prob]
+  let global[]
+  foreach V [x ->
+    let aux []
+    set aux lput x aux
+    set global lput (rnd:weighted-one-of-list aux [prob]) global
+    set aux []
+  ]
+ report global
+end
+;-----------------------------------------------------------------------------------------------------------------------------------------------------
 ;Algorithm
 ;
 ;Set N equal to the number of particles in the swarm;
