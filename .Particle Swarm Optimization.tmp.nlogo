@@ -27,7 +27,8 @@ to setup
   ]
   create-elements poblacion ;user adaptable variable
   set-basic-values-elements ; color, shape, random weight and price and position
-  set-random-solution
+  set-random-solution ; set initial solution of turtles in order to start the search
+
   ask one-of elements [
     set global-mejor-set personal-mejor-set
     set part-of-global-best? true
@@ -84,6 +85,23 @@ to set-global-solution[turt]
         set part-of-global-best? true
       ]
     ]
+  ]
+end
+
+
+to-report evalPosition [solution]
+  let weightSol 0
+  let priceSol 0
+  foreach solution [x ->
+    ask x [
+      set weightSol (weightSol + weight)
+      set priceSol (priceSol + price)
+    ]
+  ]
+  ifelse weightSol < weight-constraint [
+    report weightSol
+  ][
+    report 999999999999
   ]
 end
 @#$#@#$#@
@@ -339,6 +357,21 @@ mean [val] of patches
 4
 1
 11
+
+SLIDER
+10
+255
+182
+288
+weight-constraint
+weight-constraint
+100
+1000
+201.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ¿QUÉ ES?
