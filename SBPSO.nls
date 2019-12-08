@@ -120,15 +120,14 @@ end
 ;rnd:weighted-one-of-list list anonymous-reporter
 ;The probability of each item being picked is proportional to the weight given by the anonymous-reporter for that item. 
 
-to-report randPickVel [V prob]
-  let global[]
-  foreach V [x ->
-    let aux []
-    set aux lput x aux
-    set global lput (rnd:weighted-one-of-list aux [prob]) global
-    set aux []
+to-report applyVel [posit vel] ;apply a velocity to a position
+  let retPos posit
+  foreach vel [x ->
+    ;if we find 0 in the sublist it means that we need to add that number to the given position, if its 1 we need to remove that number
+    ;from the given position if it exist(can be the case)
+    ifelse (first x = 0) [set retPos lput (last x) retpos] [set retPos remove (last x) retPos] 
   ]
- report global
+  report retPos
 end
 ;-----------------------------------------------------------------------------------------------------------------------------------------------------
 ;Algorithm
