@@ -129,6 +129,11 @@ to-report applyVel [posit vel] ;apply a velocity to a position
   ]
   report retPos
 end
+
+to-report prodVel [eta V]
+  let n floor (eta * length V)
+  report n-of n V
+end
 ;-----------------------------------------------------------------------------------------------------------------------------------------------------
 ;Algorithm
 ;
