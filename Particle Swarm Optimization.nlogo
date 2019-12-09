@@ -51,6 +51,7 @@ to set-random-solution
     set personal-mejor-set []
     repeat ( random ( poblacion / 10 ) ) [
       set personal-mejor-set lput  (one-of elements) personal-mejor-set
+      set personal-mejor-val evalPosition personal-mejor-set
     ]
   ]
 end
@@ -86,6 +87,53 @@ to set-global-solution[turt]
       ]
     ]
   ]
+end
+
+;function which evaluates the current solution
+;adds all the weights and sees if it is smaller thant the weight constraint
+;objective is to maximize the prize
+to-report evalPosition [solution]
+  let weightSol 0
+  let priceSol 0
+  foreach solution [x ->
+    ask x [
+      set weightSol (weightSol + weight)
+      set priceSol (priceSol + price)
+    ]
+  ]
+  ifelse weightSol < weight-constraint [
+    report priceSol
+  ][
+    report -999999999999990
+  ]
+end
+
+to-report k-tournamentSelection [N k sol]
+  let tempList sol ;make a temporary list which starts out to be the local solution of the turtle
+  let bestSol sol ;best solution is the same but will be modified turing the algoritm
+  let solPoints 0
+  let bestSolPoints evalPosition bestSol
+  let velocity [] ;initialize velocity set
+  let elemToAdd [] ;a list in order to represent the velocity of one element to add [0 element x]
+  repeat N [
+    repeat k [
+      ask one-of elements with [not member? (element who) sol][ ;randomly choose one element which is not already in the solution
+        set tempList lput element who sol ; add this element to the temporary list in order to compare if this solution is better
+        set solPoints evalPosition tempList ; evaluate the solution
+        if solPoints > bestSolPoints [ ;update bestSolution
+          set bestSolPoints solPoints
+          set bestSol tempList
+          set elemToAdd (list 0 (element who)) ;is the element which will be added as velocity
+        ]
+      ]
+    ]
+    set solPoints evalPosition sol ;reset temporary values in order to find new one to add to the solution
+    set bestSolPoints solPoints
+    set bestSol sol
+    set velocity lput elemToAdd velocity
+  ]
+  print velocity
+  report velocity
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -340,6 +388,21 @@ mean [val] of patches
 4
 1
 11
+
+SLIDER
+10
+255
+182
+288
+weight-constraint
+weight-constraint
+100
+1000
+627.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ¿QUÉ ES?
