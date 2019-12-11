@@ -40,16 +40,17 @@ end
 ; Main Procedure report. It gives iter repetitions of step function, and returns the 
 ; position and value of the (possibly local) maximum found.
 
-to-report AI:SBPSO [#iters #inertia-particle #atraction-best-personal #atraction-best-global #lim-vel-particles] 
+;iters=number of iterations
+to-report AI:SBPSO [#iters #atraction-best-personal #atraction-best-global] 
   repeat #iters [
-    AI:SBPSO-step #inertia-particle #atraction-best-personal #atraction-best-global #lim-vel-particles ;Calling the main function
+    AI:SBPSO-step #atraction-best-personal #atraction-best-global ;Calling the main function
     AI:PSOExternalUpdate
   ]
   report (list global-best-value global-best-pos)
 end
 
 ; Step procedure where the PSO lgorithm is executing
-to AI:SBPSO-step [#inertia-particle #atraction-best-personal #atraction-best-global #lim-vel-particles]
+to AI:SBPSO-step [#atraction-best-personal #atraction-best-global]
   ; First, check if the best values must be updated (personals and global)
   ask AI:particles [
     if evaluation > personal-best-value ;In this case we need to update the personal best position
@@ -68,24 +69,21 @@ to AI:SBPSO-step [#inertia-particle #atraction-best-personal #atraction-best-glo
   ; Then, update velocities and positions of every particle
   ask AI:particles
   [
-    ; 
-    ; Consider the inertia
-    set velocity *v #inertia-particle velocity
+    let unionAux union (union pos personal-best-pos) global-best-pos
+    let Ai filter [x -> not member? x unionAux] U
     
-    ; Attraction to personal best
-    let to-personal-best-pos -v personal-best-pos pos
-    set velocity +v velocity (*v ((1 - #inertia-particle) * #atraction-best-personal * (random-float 1.0)) to-personal-best-pos)
+    let auxSi (list pos personal-best-pos global-best-pos);Just putting up X, P.best and G.best in a list of 3 to reduce after
+    let Si reduce intersect auxSi ;Intersection of X P.best and G.best
     
-    ; Attraction to global best
-    let to-global-best -v global-best-pos pos
-    set velocity  +v velocity (*v ((1 - #inertia-particle) * #atraction-best-global * (random-float 1.0)) to-global-best)
-
-    ; Bound the velocity
-    let n norm velocity
-    if n > #lim-vel-particles [set velocity (*v ( #lim-vel-particles / n) velocity)]
+    ;c1 and c2 are atraction constants to personal and global best
+    set velocity (union (prodVel (#atraction-best-personal * (random-float 1.0)) (difference personal-best-pos pos)) 
+                        (prodVel (#atraction-best-global * (random-float 1.0)) (difference global-best-pos pos))) ;remains to put ->
+   ;->(all of above +) UNION (c3r3 REMOVAL_OF_ELEM Ai) UNION (c4r4 ADDITION_OF_ELEM Si)
+   ;im not sure how to implement REMOVAL_OF_ELEMENTS and ADDITION_OF_ELEMENTS operators :/
+    
     
     ; Update the position of the particle
-    set pos map cut01 (+v pos velocity)
+    set pos applyVel pos velocity
     set evaluation AI:evaluation
   ]
 end
@@ -111,10 +109,21 @@ to-report applyVel [posit vel] ;apply a velocity to a position
   report retPos
 end
 
-to-report prodVel [eta V]
+to-report prodVel [eta V] ;picks a random subset from V with probability of eta
   let n floor (eta * length V)
   report n-of n V
 end
+
+to-report intersect [a b] ;auxiliar function to easily intersect 3 lists
+   report (filter [x -> member? x b] a)
+end
+
+
+
+
+
+
+
 
 ;-----------------------------------------------------------------------------------------------------------------------------------------------------
 ;Algorithm
@@ -155,8 +164,6 @@ end
 ;Calculate f (Xi);
 ;end
 ;end
-
-
 
 ; Irrelevant stuff
 ; ATRACCION
