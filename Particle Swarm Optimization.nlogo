@@ -35,11 +35,9 @@ to setup
   set-basic-values-elements ; color, shape, random weight and price and position
   set-random-solution ; set initial solution of turtles in order to start the search
 
-  ask one-of elements [
+  ask one-of turtles [
     set global-mejor-set personal-mejor-set
-    set part-of-global-best? true
-    set color red
-    set global-mejor-val 9999
+    set global-mejor-val evalPosition personal-mejor-set
     set-global-solution who
   ]
 
