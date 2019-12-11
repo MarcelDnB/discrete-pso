@@ -33,7 +33,7 @@ to setup
     set global-mejor-set personal-mejor-set
     set part-of-global-best? true
     set color red
-    set global-mejor-val 9999
+    set global-mejor-val evalPosition personal-mejor-set
     set-global-solution who
   ]
 
