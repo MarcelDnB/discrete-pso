@@ -135,8 +135,8 @@ to-report k-tournamentSelection [N k sol]
     ]
     set solPoints 0 ;reset temporary values in order to find new one to add to the solution
     set bestSolPoints 0
-    set elemToAdd one-of elements with [not member? (element who) sol]
-    set bestSol lput elemToadd sol
+
+    set bestSol lput elemToAadd sol
     set velo lput elemToAdd velo
   ]
   report list velo []
