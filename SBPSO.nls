@@ -97,36 +97,17 @@ to-report union [set1 set2]
   report remove-duplicates ret
 end
 
-to-report difference [set1 set2] ; 0 -> "+", 1 -> "-"
-  let differenceSet filter [x -> not member? x set2] set1
-  let first-op[]
-  let second-op[]
-  let aux[]
-  foreach differenceSet [x -> 
-    set aux lput 0 aux
-    set aux lput x aux
-    set first-op lput aux first-op
-    set aux []
-  ]
-  set differenceSet filter [x -> not member? x set1] set2
-   foreach differenceSet [x -> 
-    set aux lput 1 aux
-    set aux lput x aux
-    set first-op lput aux first-op
-    set aux []
-  ]
-  report (union first-op second-op)
+to-report difference [set1 set2]
+  let differenceSet1 filter [x -> not member? x set2] set1 ;elements in set1 but not in set2
+  let differenceSet2 filter [x -> not member? x set1] set2 ;elements in set2 but not in set1
+  report (list differenceSet1 differenceSet2) ;first set with additions and second one with deletions
 end
-;rnd:weighted-one-of-list list anonymous-reporter
-;The probability of each item being picked is proportional to the weight given by the anonymous-reporter for that item. 
 
 to-report applyVel [posit vel] ;apply a velocity to a position
   let retPos posit
-  foreach vel [x ->
-    ;if we find 0 in the sublist it means that we need to add that number to the given position, if its 1 we need to remove that number
-    ;from the given position if it exist(can be the case)
-    ifelse (first x = 0) [set retPos lput (last x) retpos] [set retPos remove (last x) retPos] 
-  ]
+  set retPos filter [x -> not member? x (last vel)] posit ;"deleting" items on second list of the velocity from the given position
+  set retPos se retPos (first vel) ;adding the first list of the velocity to the given position
+  set retPos remove-duplicates retPos ;to be sure that we doesn't have duplicates
   report retPos
 end
 
@@ -134,6 +115,7 @@ to-report prodVel [eta V]
   let n floor (eta * length V)
   report n-of n V
 end
+
 ;-----------------------------------------------------------------------------------------------------------------------------------------------------
 ;Algorithm
 ;
