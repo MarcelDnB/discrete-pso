@@ -41,7 +41,7 @@ end
 ; position and value of the (possibly local) maximum found.
 
 ;iters=number of iterations
-to-report AI:SBPSO [#iters #atraction-best-personal #atraction-best-global] 
+to-report AI:SBPSO [#iters #atraction-best-personal #atraction-best-global #atraction-ktor-random] 
   repeat #iters [
     AI:SBPSO-step #atraction-best-personal #atraction-best-global ;Calling the main function
     AI:PSOExternalUpdate
@@ -50,7 +50,7 @@ to-report AI:SBPSO [#iters #atraction-best-personal #atraction-best-global]
 end
 
 ; Step procedure where the PSO lgorithm is executing
-to AI:SBPSO-step [#atraction-best-personal #atraction-best-global]
+to AI:SBPSO-step [#atraction-best-personal #atraction-best-global #atraction-ktor-random]
   ; First, check if the best values must be updated (personals and global)
   ask AI:particles [
     if evaluation > personal-best-value ;In this case we need to update the personal best position
@@ -78,11 +78,15 @@ to AI:SBPSO-step [#atraction-best-personal #atraction-best-global]
     ;c1 and c2 are atraction constants to personal and global best
     set velocity (union (prodVel (#atraction-best-personal * (random-float 1.0)) (difference personal-best-pos pos)) 
                         (prodVel (#atraction-best-global * (random-float 1.0)) (difference global-best-pos pos))) ;remains to put ->
+    set velocity union velocity (k-tournamentSelection (#atraction-ktor-random * (random-float 1.0)) (count elements))
+    let auxVel round((random-float 1.0) * length Si)
+    set velocity union velocity n-of auxVel Si
+    
    ;->(all of above +) UNION (c3r3 REMOVAL_OF_ELEM Ai) UNION (c4r4 ADDITION_OF_ELEM Si)
    ;im not sure how to implement REMOVAL_OF_ELEMENTS and ADDITION_OF_ELEMENTS operators :/
     
     
-    ; Update the position of the particle
+   ;Update the position of the particle
     set pos applyVel pos velocity
     set evaluation AI:evaluation
   ]
@@ -118,8 +122,33 @@ to-report intersect [a b] ;auxiliar function to easily intersect 3 lists
    report (filter [x -> member? x b] a)
 end
 
-
-
+to-report k-tournamentSelection [N k sol]
+  let tempList sol ;make a temporary list which starts out to be the local solution of the turtle
+  let bestSol sol ;best solution is the same but will be modified turing the algoritm
+  let solPoints 0
+  let bestSolPoints 0
+  let velo [] ;initialize velocity set
+  let elemToAdd one-of elements with [not member? (element who) sol]
+  repeat N [
+    repeat k [
+      ask one-of elements with [not member? (element who) bestSol][ ;randomly choose one element which is not already in the solution
+        set tempList lput element who bestSol ; add this element to the temporary list in order to compare if this solution is better
+        set solPoints evalPosition tempList ; evaluate the solution
+        if solPoints > bestSolPoints [ ;update bestSolution
+          set bestSolPoints solPoints
+          set bestSol tempList
+          set elemToAdd (element who) ;is the element which will be added as velocity
+        ]
+      ]
+    ]
+    set solPoints 0 ;reset temporary values in order to find new one to add to the solution
+    set bestSolPoints 0
+    set elemToAdd one-of elements with [not member? (element who) sol]
+    set bestSol lput elemToadd sol
+    set velo lput elemToAdd velo
+  ]
+  report list velo []
+end
 
 
 
@@ -165,7 +194,6 @@ end
 ;end
 ;end
 
-; Irrelevant stuff
 ; ATRACCION
 ; En PSO la particula estaba atraida por el personal best, global best, etc. En SBPSO ocurre la misma atraccion por el personal best
 ; Si te fijas en la la figura b que hay en el pdf el movimiento de X(t) hacia Y(t) en SBPSO significa que los dos sets se hacen mas similares con
