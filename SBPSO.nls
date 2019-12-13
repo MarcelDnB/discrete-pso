@@ -7,89 +7,42 @@
 ;# then we will get a returned position of: ResultPosition: X'= {a,b}. 
 ;# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-extensions[Rnd]
-globals [
-  global-best-pos ;gonna be a set which stores the global best set (position)
-  global-best-value ;gonna be a set which stores the value of that position (fitness function return)
-  U ;gonna be a set, basically our search space
-]
+
+
 
 breed [AI:particles AI:particle]
-
-AI:particles-own [
-  velocity ;The velocity is a set of operation pairs {(+,a),(-,b)..}
-  pos ;The position is a set of elements from the universe of discourse (U) 
-  personal-best-value ;gonna be the best value found of the pos below
-  personal-best-pos ;gonna be the best set found 
-  evaluation ; This is the returned value of fitness function of this particle position
+turtles-own
+[
+  personal-best-val   ; mejor valor que he encontrado
+  personal-best-pos ; the attributes which make this the best
+  posi
+  velocity
 ]
 
-to AI:Create-particles [#population #dimension] ;Dimension will be the size of our particle position set and Population will be the number of particles
-  create-AI:particles #population [ ;Creates #population number of particles
-    set pos n-values #dimension [random U] ;random elements of our U
-    set velocity [] ;creates an empty list velocity variable
-    set evaluation AI:evaluation ;AI:evaluation needs to be provided by the program which runs along with this .nls (like knapsack problem) which has the fitness function
-    set personal-best-value evaluation ;The value of the position below (initial)
-    set personal-best-pos pos ;The starting position is the initial best personal value (initial)
-  ]
-  let best min-one-of (AI:particles with-max [evaluation]) [who] ;Store the best particle yet
-  set global-best-value [personal-best-value] of best ;Store the value of best
-  set global-best-pos [personal-best-pos] of best ;Store the pos (set) of best
-end
 
 ; Main Procedure report. It gives iter repetitions of step function, and returns the 
 ; position and value of the (possibly local) maximum found.
 
-;iters=number of iterations
-to-report AI:SBPSO [#iters #atraction-best-personal #atraction-best-global #atraction-ktor-random] 
-  repeat #iters [
-    AI:SBPSO-step #atraction-best-personal #atraction-best-global ;Calling the main function
-    AI:PSOExternalUpdate
-  ]
-  report (list global-best-value global-best-pos)
-end
 
-; Step procedure where the PSO lgorithm is executing
-to AI:SBPSO-step [#atraction-best-personal #atraction-best-global #atraction-ktor-random]
-  ; First, check if the best values must be updated (personals and global)
-  ask AI:particles [
-    if evaluation > personal-best-value ;In this case we need to update the personal best position
-    [
-      set personal-best-value evaluation ;Changing its value with the new best found
-      set personal-best-pos pos ;Changing its pos set with the new best found
-    ]
-  ]
-  let best min-one-of (AI:particles with-max [personal-best-value]) [who] ;We update the global best too if its the case
-  set global-best-value [personal-best-value] of best ;Same
-  set global-best-pos [personal-best-pos] of best ;Same
 
-;Now comes the hard part, we need to create some aux functions to implement all the operators listed, and to be able to work with the different kind of sets that we have here
-;code below not valid part of the "template"
 
-  ; Then, update velocities and positions of every particle
-  ask AI:particles
-  [
-    let unionAux union (union pos personal-best-pos) global-best-pos
-    let Ai filter [x -> not member? x unionAux] U
+to-report updateVelocity [turt]
+    let unionAuxAi union (union posi personal-best-pos) global-best-pos
+    let Ai filter [x -> not member? x unionAuxAi] (sort U)
     
-    let auxSi (list pos personal-best-pos global-best-pos);Just putting up X, P.best and G.best in a list of 3 to reduce after
+    let auxSi (list posi personal-best-pos global-best-pos);Just putting up X, P.best and G.best in a list of 3 to reduce after
     let Si reduce intersect auxSi ;Intersection of X P.best and G.best
     
+    let k count elements with [member? (element who) Ai]
     ;c1 and c2 are atraction constants to personal and global best
-    set velocity (union (prodVel (#atraction-best-personal * (random-float 1.0)) (difference personal-best-pos pos)) 
-                        (prodVel (#atraction-best-global * (random-float 1.0)) (difference global-best-pos pos))) ;remains to put ->
-    set velocity union velocity (k-tournamentSelection (#atraction-ktor-random * (random-float 1.0)) (count elements))
-    let auxVel round((random-float 1.0) * length Si)
+    set velocity (union (prodVel (#atraction-best-personal * (random-float 1.0)) (difference personal-best-pos posi)) 
+                        (prodVel (#atraction-best-global * (random-float 1.0)) (difference global-best-pos posi))) ;remains to put ->
+    set velocity union velocity (k-tournamentSelection k posi)
+    let auxVel round((random-float 1.0) * (length Si))
     set velocity union velocity n-of auxVel Si
-    
-   ;->(all of above +) UNION (c3r3 REMOVAL_OF_ELEM Ai) UNION (c4r4 ADDITION_OF_ELEM Si)
-   ;im not sure how to implement REMOVAL_OF_ELEMENTS and ADDITION_OF_ELEMENTS operators :/
-    
-    
-   ;Update the position of the particle
-    set pos applyVel pos velocity
-    set evaluation AI:evaluation
-  ]
+    let temp sentence (last velocity) (n-of auxVel Si)
+    set velocity (list first velocity temp)
+    report velocity
 end
 
 ;AUXILIARY FUNCTIONS
@@ -122,91 +75,58 @@ to-report intersect [a b] ;auxiliar function to easily intersect 3 lists
    report (filter [x -> member? x b] a)
 end
 
-to-report k-tournamentSelection [N k sol]
+to-report k-tournamentSelection [k sol]
   let tempList sol ;make a temporary list which starts out to be the local solution of the turtle
   let bestSol sol ;best solution is the same but will be modified turing the algoritm
   let solPoints 0
   let bestSolPoints 0
   let velo [] ;initialize velocity set
-  let elemToAdd one-of elements with [not member? (element who) sol]
-  repeat N [
-    repeat k [
-      ask one-of elements with [not member? (element who) bestSol][ ;randomly choose one element which is not already in the solution
-        set tempList lput element who bestSol ; add this element to the temporary list in order to compare if this solution is better
-        set solPoints evalPosition tempList ; evaluate the solution
-        if solPoints > bestSolPoints [ ;update bestSolution
-          set bestSolPoints solPoints
-          set bestSol tempList
-          set elemToAdd (element who) ;is the element which will be added as velocity
-        ]
+  let Ai (elements with [not member? (element who) sol and not member? (element who) personal-best-pos and not member? (element who) global-best-pos])
+  if count Ai > 0 [
+  let elemToAdd one-of Ai
+  repeat k [
+    ask one-of Ai [ ;randomly choose one element which is not already in the solution
+      set tempList lput (element who) bestSol ; add this element to the temporary list in order to compare if this solution is better
+      set solPoints evalPosition tempList ; evaluate the solution
+      if solPoints > bestSolPoints [ ;update bestSolution
+        set bestSolPoints solPoints
+        set elemToAdd (element who) ;is the element which will be added as velocity
       ]
     ]
-    set solPoints 0 ;reset temporary values in order to find new one to add to the solution
-    set bestSolPoints 0
-    set elemToAdd one-of elements with [not member? (element who) sol]
-    set bestSol lput elemToadd sol
-    set velo lput elemToAdd velo
   ]
+    set velo lput elemToAdd velo ]
   report list velo []
+end
+
+to set-random-solution
+  ask turtles [
+    set personal-best-pos []
+    repeat ( random (poblacion mod 7) + 1 ) [
+      set personal-best-pos lput  (one-of elements) personal-best-pos
+      set personal-best-val evalPosition personal-best-pos
+    ]
+  ]
 end
 
 
 
 
+to set-global-solution[turt]
+    foreach global-best-pos [ ele ->
+      ask ele [
+        set color blue
+        set part-of-global-best? false
+      ]
+    ]
+  ask turtle turt [
+    set global-best-pos personal-best-pos  ; the attributes which make this the best
+    set global-best-value personal-best-val   ; best value found yet
 
-;-----------------------------------------------------------------------------------------------------------------------------------------------------
-;Algorithm
-;
-;Set N equal to the number of particles in the swarm;
-;for i = 1, . . . ,N do
-;Initialize Xi as random subset of U;
-;Initialize Vi = 0;
-;Calculate f (Xi);
-;Initialize f (Yi) = -infinite;
-;Initialize f (bYi) = -infinite;
-;end
-;while stopping condition is false do
-;for i = 1, . . . ,N do
-;// set the personal best position;
-;if f (Xi) > f (Yi) then
-;Yi = Xi;
-;end
-;// set the neighborhood best position;
-;for all neighbors l of particle i do
-;if ( f (Yi) > f (bYl) then
-;bYl =Yi;
-;end
-;end
-;end
-;for i = 1, . . . ,N do
-;Update Vi according to equation (4.7); turtle-set turtleset-S turtleset-T for union
-;Vi(t+1) = c1*r1 SCALARMULT (Yi(t)) DIFFERENCE Xi(t)) ADDITION c2*r2 SCALARMULT (^Yi(t) DIFFERENCE Xi(t)) ADDITION (c3*r3 ADDITIONELEM Ai(t)) ADDITION
-;(c4*r4 REMOVEELEM Si(t))
-
-;c1 y c2 pertenecen a [0,1]
-;c3 y c4 pertenecen a [0,|U|]
-;Los numeros random ri se sacan de una distribucion normal (0,1) independientemente
-;Ai(t) = U\(Xi(t) Union Yi(t) Union ^Yi(t)) y Si(t) = Xi(t) Intersec Yi(t) Intersec ^Yi(t)
-
-;Update Xi according to equation (4.8);
-;X i(t+1) = Xi(t) ADDVELPOS Vi(t+1)
-;Calculate f (Xi);
-;end
-;end
-
-; ATRACCION
-; En PSO la particula estaba atraida por el personal best, global best, etc. En SBPSO ocurre la misma atraccion por el personal best
-; Si te fijas en la la figura b que hay en el pdf el movimiento de X(t) hacia Y(t) en SBPSO significa que los dos sets se hacen mas similares con
-; eliminar los elementos de X(t) que no estan en Y(t) y añadiendo a X(t) los elementos que faltan en Y(t) y los elementos que estan en los dos sets
-; no se ven afectados por esta atraccion.
-
-; VELOCIDAD
-; La velocidad la vamos a denotar mediante un par de elementos, que va a consistir en la adicion y supresion de elementos. 
-; Como ejemplo: Considerando la posicion X = {a, c} y velocidad V = {(+,b), (−, c)}, añadir la velocidad V a la posicion X significa que el elemento
-; b se va a añadir mientras que el elemento c se va a suprimir, quedando una posicion: X'= {a,b}
-
-; A particle is an subset of U
-; Population: number of particles to be created
-; Dimesion: dimension of U
-; AI:evaluation es el valor de la particula, es decir, la salida de f(Xi), la f.fitness estará en el .nlogo que incluya este .nls
-
+    foreach global-best-pos [ ele ->
+      ask ele [
+        set color red
+        set part-of-global-best? true
+      ]
+    ]
+  ]
+end
