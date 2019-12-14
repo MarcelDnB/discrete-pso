@@ -6,9 +6,15 @@
 ;# Position: X = {a, c} (considering size of 2 elements it can be more..) and Velocity: V = {(+,b), (−, c)} (considering size of 2 pairs of elements it can be more..)
 ;# then we will get a returned position of: ResultPosition: X'= {a,b}. 
 ;# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+globals [
+  global-best-pos ;gonna be a set which stores the global best set (position)
+  global-best-value ;gonna be a set which stores the value of that position (fitness function return)
+  U ;gonna be a set, basically our search space
+  weight-knapsack ;to represent the weight of the knapsack in the interface
+]
+breed [particles particle]
 
-turtles-own
-[
+particles-own [
   personal-best-val   ; mejor valor que he encontrado
   personal-best-pos ; the attributes which make this the best
   posi
@@ -19,35 +25,21 @@ turtles-own
 to-report updateVelocity [turt]
     let unionAuxAi union (union posi personal-best-pos) global-best-pos
     let Ai filter [x -> not member? x unionAuxAi] (sort U)
-    
     let auxSi (list posi personal-best-pos global-best-pos);Just putting up X, P.best and G.best in a list of 3 to reduce after
     let Si reduce intersect auxSi ;Intersection of X P.best and G.best
     
-    let k count elements with [member? (element who) Ai]
-    ;c1 and c2 are atraction constants to personal and global best
+    let k count elements with [member? (element who) Ai]  
     set velocity (union (prodVel (#atraction-best-personal * (random-float 1.0)) (difference personal-best-pos posi)) 
                         (prodVel (#atraction-best-global * (random-float 1.0)) (difference global-best-pos posi))) 
     set velocity union velocity (k-tournamentSelection k posi)
     let auxVel round((random-float 1.0) * (length Si))
     set velocity union velocity n-of auxVel Si
+  
     let temp sentence (last velocity) (n-of auxVel Si)
     set velocity (list first velocity temp)
     report velocity
 end
 
-
-
-;AUXILIARY FUNCTIONS
-to-report union [set1 set2]
-  let ret se set1 set2
-  report remove-duplicates ret
-end
-
-to-report difference [set1 set2]
-  let differenceSet1 filter [x -> not member? x set2] set1 ;elements in set1 but not in set2
-  let differenceSet2 filter [x -> not member? x set1] set2 ;elements in set2 but not in set1
-  report (list differenceSet1 differenceSet2) ;first set with additions and second one with deletions
-end
 
 to-report applyVel [posit vel] ;apply a velocity to a position (for position update)
   let retPos posit
@@ -57,14 +49,31 @@ to-report applyVel [posit vel] ;apply a velocity to a position (for position upd
   report retPos
 end
 
+
+;AUXILIARY FUNCTIONS
+to-report union [set1 set2] ;makes the union of two sets
+  let ret se set1 set2
+  report remove-duplicates ret
+end
+
+
+to-report difference [set1 set2]
+  let differenceSet1 filter [x -> not member? x set2] set1 ;elements in set1 but not in set2
+  let differenceSet2 filter [x -> not member? x set1] set2 ;elements in set2 but not in set1
+  report (list differenceSet1 differenceSet2) ;first set with additions and second one with deletions
+end
+
+
 to-report prodVel [eta V] ;picks a random subset from V with probability of eta
   let n floor (eta * length V)
   report n-of n V
 end
 
+
 to-report intersect [a b] ;auxiliar function to easily intersect 3 lists
    report (filter [x -> member? x b] a)
 end
+
 
 to-report k-tournamentSelection [k sol]
   let tempList sol ;make a temporary list which starts out to be the local solution of the turtle
@@ -72,8 +81,9 @@ to-report k-tournamentSelection [k sol]
   let solPoints 0
   let bestSolPoints 0
   let velo [] ;initialize velocity set
-  let Ai (elements with [not member? (element who) sol and not member? (element who) personal-best-pos and not member? (element who) global-best-pos])
-  if count Ai > 0 [
+  let unionAuxAi union (union posi personal-best-pos) global-best-pos
+  let Ai filter [x -> not member? x unionAuxAi] (sort U)
+  if length Ai > 0 [
   let elemToAdd one-of Ai
   repeat k [
     ask one-of Ai [ ;randomly choose one element which is not already in the solution
@@ -89,8 +99,9 @@ to-report k-tournamentSelection [k sol]
   report list velo []
 end
 
+
 to set-random-solution ;making a random sol to initialize
-  ask turtles [
+  ask particles [
     set personal-best-pos []
     repeat ( random (poblacion mod 7) + 1 ) [ ;put random elements in personal best to have a initialization
       set personal-best-pos lput  (one-of elements) personal-best-pos ;adding that elements to personal best list
@@ -100,23 +111,16 @@ to set-random-solution ;making a random sol to initialize
 end
 
 
-
-
-to set-global-solution[turt]
-    foreach global-best-pos [ ele ->
+to set-global-solution[turt] ;update the global best set of elements
+    foreach global-best-pos [ ele -> ;making the old set of elements back blue graphically
       ask ele [
         set color blue
-        set part-of-global-best? false
       ]
     ]
-  ask turtle turt [
-    set global-best-pos personal-best-pos  ; the attributes which make this the best
-    set global-best-value personal-best-val   ; best value found yet
-
-    foreach global-best-pos [ ele ->
+  ask particle turt [
+    foreach global-best-pos [ ele -> ;making the old set of elements back blue graphically
       ask ele [
         set color red
-        set part-of-global-best? true
       ]
     ]
   ]

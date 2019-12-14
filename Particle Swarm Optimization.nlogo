@@ -3,19 +3,11 @@
 __includes ["SBPSO.nls"]
 
 
-globals [
-  global-best-pos ;gonna be a set which stores the global best set (position)
-  global-best-value ;gonna be a set which stores the value of that position (fitness function return)
-  U ;gonna be a set, basically our search space
-  weight-knapsack ;to represent the weight of the knapsack in the interface
-]
-
 breed [elements element] ;elements to fill the knapsack
 elements-own
 [
   weight ;weight of the element
   price ;price
-  part-of-global-best? ;boolean to see if it is part of the global solution
 ]
 
 
@@ -29,16 +21,17 @@ to setup
 
   create-elements poblacion ;user adaptable variable
   set-basic-values-elements ; color, shape, random weight and price and position
+  create-particles particulas
   set-random-solution ; set initial solution of turtles in order to start the search
 
   set U elements ;the set of all elements we have
 
-  ask turtles [
-    set posi personal-best-pos ;asking the turtles
+  ask particles [
+    set posi personal-best-pos ;put the personal best position in the actual position of the turtle
   ]
 
-  ask one-of turtles [
-    set global-best-pos personal-best-pos
+  ask one-of particles [ ;asign the global best to a random turtle
+    set global-best-pos personal-best-pos ;personal best is assigned to global best (for initialization)
     set global-best-value evalPosition personal-best-pos
     set-global-solution who
     set weight-knapsack calculateWeight global-best-pos
@@ -48,7 +41,7 @@ end
 
 
 to go
-  ask turtles [
+  ask particles [ ;checking if we have found a new best personal or global and update it if its the case
     let posPoints evalPosition posi
     if posPoints > personal-best-val [
       set personal-best-pos posi
@@ -57,54 +50,15 @@ to go
     if posPoints > global-best-value [
       set global-best-pos posi
       set global-best-value posPoints
-
       set-global-solution who
       set weight-knapsack calculateWeight global-best-pos
     ]
-  ]
-  ask turtles [
+       ;Update the velocity of the particle
     set velocity updateVelocity who
        ;Update the position of the particle
     set posi applyVel posi velocity
   ]
   tick
-end
-
-
-;---------------------Auxiliar functions---------------------
-to-report AI:evaluation
-  report evalPosition posi
-end
-
-
-to-report calculateWeight [sol]
-  let totalWeight 0
-  foreach sol [x ->
-    ask x [
-      set totalWeight (totalWeight + weight)]
-    ]
-  report totalWeight
-end
-
-to rand-xy-co ;to disperse elements in the interface graphic output
-  move-to one-of patches with [ not any? elements-here ]
-end
-
-
-to set-basic-values-elements ;for the graphic representation of elements
-    ask elements [
-    rand-xy-co
-    set color blue
-    set shape "square"
-    set size patch-size * 2
-    set part-of-global-best? false
-    set weight random max-weight-elements
-    set price random max-price-elements
-    output-print word "Element Num: " who
-    output-print word "Weight: " weight
-    output-print word "Price: " price
-    output-print "------"
-  ]
 end
 
 
@@ -124,6 +78,41 @@ to-report evalPosition [solution]
     report priceSol
   ][
     report -999999999999990
+  ]
+end
+;---------------------Auxiliar functions---------------------
+to-report AI:evaluation
+  report evalPosition posi
+end
+
+
+to-report calculateWeight [sol] ;calculates the total weight of a set of elements
+  let totalWeight 0
+  foreach sol [x ->
+    ask x [
+      set totalWeight (totalWeight + weight)]
+    ]
+  report totalWeight
+end
+
+
+to rand-xy-co ;to disperse elements in the interface graphic output
+  move-to one-of patches with [ not any? elements-here ]
+end
+
+
+to set-basic-values-elements ;for the graphic representation of elements
+    ask elements [
+    rand-xy-co
+    set color blue
+    set shape "square"
+    set size patch-size * 2
+    set weight random max-weight-elements
+    set price random max-price-elements
+    output-print word "Element Num: " who
+    output-print word "Weight: " weight
+    output-print word "Price: " price
+    output-print "------"
   ]
 end
 @#$#@#$#@
@@ -156,9 +145,9 @@ ticks
 
 BUTTON
 10
-290
+335
 70
-323
+368
 NIL
 setup
 NIL
@@ -172,10 +161,10 @@ NIL
 1
 
 BUTTON
-165
-290
-225
-323
+85
+335
+155
+368
 NIL
 go
 T
@@ -197,7 +186,7 @@ poblacion
 poblacion
 1
 1000
-191.0
+400.0
 1
 1
 NIL
@@ -234,10 +223,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-85
-290
-150
-323
+170
+335
+225
+368
 Un paso
 go
 NIL
@@ -267,7 +256,7 @@ MONITOR
 805
 325
 Media:
-mean [personal-best-val] of turtles
+mean [personal-best-val] of particles
 4
 1
 11
@@ -347,7 +336,7 @@ max-weight-elements
 max-weight-elements
 10
 100
-21.0
+30.0
 1
 1
 NIL
@@ -377,6 +366,21 @@ RED - PART OF GLOBAL SOLUTION\nBLUE - NO PART OF GLOBAL SOLUTION
 11
 0.0
 1
+
+SLIDER
+10
+290
+225
+323
+particulas
+particulas
+1
+1000
+161.0
+10
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ¿QUÉ ES?
