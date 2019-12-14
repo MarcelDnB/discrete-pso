@@ -7,10 +7,6 @@
 ;# then we will get a returned position of: ResultPosition: X'= {a,b}. 
 ;# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-
-
-
-breed [AI:particles AI:particle]
 turtles-own
 [
   personal-best-val   ; mejor valor que he encontrado
@@ -18,12 +14,6 @@ turtles-own
   posi
   velocity
 ]
-
-
-; Main Procedure report. It gives iter repetitions of step function, and returns the 
-; position and value of the (possibly local) maximum found.
-
-
 
 
 to-report updateVelocity [turt]
@@ -36,7 +26,7 @@ to-report updateVelocity [turt]
     let k count elements with [member? (element who) Ai]
     ;c1 and c2 are atraction constants to personal and global best
     set velocity (union (prodVel (#atraction-best-personal * (random-float 1.0)) (difference personal-best-pos posi)) 
-                        (prodVel (#atraction-best-global * (random-float 1.0)) (difference global-best-pos posi))) ;remains to put ->
+                        (prodVel (#atraction-best-global * (random-float 1.0)) (difference global-best-pos posi))) 
     set velocity union velocity (k-tournamentSelection k posi)
     let auxVel round((random-float 1.0) * (length Si))
     set velocity union velocity n-of auxVel Si
@@ -45,8 +35,9 @@ to-report updateVelocity [turt]
     report velocity
 end
 
-;AUXILIARY FUNCTIONS
 
+
+;AUXILIARY FUNCTIONS
 to-report union [set1 set2]
   let ret se set1 set2
   report remove-duplicates ret
@@ -58,7 +49,7 @@ to-report difference [set1 set2]
   report (list differenceSet1 differenceSet2) ;first set with additions and second one with deletions
 end
 
-to-report applyVel [posit vel] ;apply a velocity to a position
+to-report applyVel [posit vel] ;apply a velocity to a position (for position update)
   let retPos posit
   set retPos filter [x -> not member? x (last vel)] posit ;"deleting" items on second list of the velocity from the given position
   set retPos se retPos (first vel) ;adding the first list of the velocity to the given position
@@ -98,12 +89,12 @@ to-report k-tournamentSelection [k sol]
   report list velo []
 end
 
-to set-random-solution
+to set-random-solution ;making a random sol to initialize
   ask turtles [
     set personal-best-pos []
-    repeat ( random (poblacion mod 7) + 1 ) [
-      set personal-best-pos lput  (one-of elements) personal-best-pos
-      set personal-best-val evalPosition personal-best-pos
+    repeat ( random (poblacion mod 7) + 1 ) [ ;put random elements in personal best to have a initialization
+      set personal-best-pos lput  (one-of elements) personal-best-pos ;adding that elements to personal best list
+      set personal-best-val evalPosition personal-best-pos ;set the value of that list using the evaluation function
     ]
   ]
 end

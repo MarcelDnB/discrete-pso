@@ -7,11 +7,10 @@ globals [
   global-best-pos ;gonna be a set which stores the global best set (position)
   global-best-value ;gonna be a set which stores the value of that position (fitness function return)
   U ;gonna be a set, basically our search space
-  weight-knapsack
+  weight-knapsack ;to represent the weight of the knapsack in the interface
 ]
 
-
-breed [elements element]
+breed [elements element] ;elements to fill the knapsack
 elements-own
 [
   weight ;weight of the element
@@ -27,14 +26,15 @@ to setup
   ask patches [
     set pcolor white ;pcolor white in order to see the elements better
   ]
+
   create-elements poblacion ;user adaptable variable
   set-basic-values-elements ; color, shape, random weight and price and position
   set-random-solution ; set initial solution of turtles in order to start the search
 
-  set U elements
+  set U elements ;the set of all elements we have
 
   ask turtles [
-    set posi personal-best-pos
+    set posi personal-best-pos ;asking the turtles
   ]
 
   ask one-of turtles [
@@ -44,10 +44,6 @@ to setup
     set weight-knapsack calculateWeight global-best-pos
   ]
 
-end
-
-to-report AI:evaluation
-  report evalPosition posi
 end
 
 
@@ -70,9 +66,14 @@ to go
     set velocity updateVelocity who
        ;Update the position of the particle
     set posi applyVel posi velocity
-
   ]
   tick
+end
+
+
+;---------------------Auxiliar functions---------------------
+to-report AI:evaluation
+  report evalPosition posi
 end
 
 
@@ -85,13 +86,12 @@ to-report calculateWeight [sol]
   report totalWeight
 end
 
-to rand-xy-co
+to rand-xy-co ;to disperse elements in the interface graphic output
   move-to one-of patches with [ not any? elements-here ]
 end
 
 
-
-to set-basic-values-elements
+to set-basic-values-elements ;for the graphic representation of elements
     ask elements [
     rand-xy-co
     set color blue
@@ -106,7 +106,6 @@ to set-basic-values-elements
     output-print "------"
   ]
 end
-
 
 
 ;function which evaluates the current solution
@@ -127,12 +126,6 @@ to-report evalPosition [solution]
     report -999999999999990
   ]
 end
-
-
-
-
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 235
@@ -162,10 +155,10 @@ ticks
 30.0
 
 BUTTON
-165
-80
-225
-113
+10
+290
+70
+323
 NIL
 setup
 NIL
@@ -180,9 +173,9 @@ NIL
 
 BUTTON
 165
-150
+290
 225
-183
+323
 NIL
 go
 T
@@ -197,14 +190,14 @@ NIL
 
 SLIDER
 10
-45
+10
 225
-78
+43
 poblacion
 poblacion
 1
 1000
-510.0
+191.0
 1
 1
 NIL
@@ -212,14 +205,14 @@ HORIZONTAL
 
 SLIDER
 10
-185
+50
 225
-218
+83
 #atraction-best-personal
 #atraction-best-personal
 0
 1
-0.5
+0.2
 0.1
 1
 NIL
@@ -227,24 +220,24 @@ HORIZONTAL
 
 SLIDER
 10
-220
+90
 225
-253
+123
 #atraction-best-global
 #atraction-best-global
 0
 1
-0.9
+0.2
 0.1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-165
-115
-225
-148
+85
+290
+150
+323
 Un paso
 go
 NIL
@@ -258,10 +251,10 @@ NIL
 1
 
 MONITOR
-725
-160
+650
+170
 850
-205
+215
 Mejor valor encontrado
 global-best-value
 4
@@ -269,10 +262,10 @@ global-best-value
 11
 
 MONITOR
-650
-160
-707
-205
+695
+280
+805
+325
 Media:
 mean [personal-best-val] of turtles
 4
@@ -281,36 +274,36 @@ mean [personal-best-val] of turtles
 
 SLIDER
 10
-255
-182
-288
+130
+225
+163
 weight-constraint
 weight-constraint
 100
 1000
-736.0
+100.0
 1
 1
 NIL
 HORIZONTAL
 
 OUTPUT
-880
-25
-1120
-565
+865
+10
+1030
+550
 11
 
 SLIDER
 10
-290
-187
-323
+170
+225
+203
 #atraction-ktor-random
 #atraction-ktor-random
-1
+0
 10
-1.0
+0.2
 0.1
 1
 NIL
@@ -318,10 +311,10 @@ HORIZONTAL
 
 MONITOR
 650
-210
-707
-255
-WEIGHT
+225
+850
+270
+Peso actual
 weight-knapsack
 17
 1
@@ -347,9 +340,9 @@ PENS
 
 SLIDER
 10
-335
-182
-368
+210
+225
+243
 max-weight-elements
 max-weight-elements
 10
@@ -362,9 +355,9 @@ HORIZONTAL
 
 SLIDER
 10
-370
-182
-403
+250
+225
+283
 max-price-elements
 max-price-elements
 0
@@ -377,9 +370,9 @@ HORIZONTAL
 
 TEXTBOX
 660
-291
-885
-416
+355
+855
+380
 RED - PART OF GLOBAL SOLUTION\nBLUE - NO PART OF GLOBAL SOLUTION
 11
 0.0
@@ -778,7 +771,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
