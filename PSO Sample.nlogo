@@ -51,10 +51,10 @@ end
 
 to Launch
   let best AI:SBPSO 200
-                  inercia-particula
+             ;     inercia-particula
                   atraccion-mejor-personal
                   atraccion-mejor-global
-                  lim-vel-particulas
+                  ;lim-vel-particulas
   let p last best
   ask patch (convert (first p) min-pxcor max-pxcor) (convert (last p) min-pycor max-pycor)
   [
@@ -81,6 +81,51 @@ to AI:PSOExternalUpdate
     ;set label (precision AI:evaluation 2)
   ]
   tick
+end
+; ----------------------- Auxiliary reports and procedures ------------------------
+
+; Returns a random point in a interval [a b]
+to-report random-in-interval [I]
+  let a first I
+  let b last I
+  report a + random-float (b - a)
+end
+
+; Product of an scalar and a vector
+to-report *v [lambda v1]
+  report map [x -> lambda * x] v1
+end
+
+; Sum of vectors
+to-report +v [v1 v2]
+  report (map [[x1 x2] -> x1 + x2] v1 v2)
+end
+
+; Difference of vectors
+to-report -v [v1 v2]
+  report (map [[x1 x2] -> x1 - x2] v1 v2)
+end
+
+; Sign function
+to-report sg [x]
+  report ifelse-value (x >= 0) [1][-1]
+end
+
+; Norm of a vector
+to-report norm [v1]
+  report sqrt sum map [x -> x * x] v1
+end
+
+; Bijection from [0,1] to [a,b]
+to-report convert [x a b]
+  report a + x * (b - a)
+end
+
+; Bound function to [0,1]
+to-report cut01 [x]
+  if x > 1 [report 1]
+  if x < 0 [report 0]
+  report x
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
