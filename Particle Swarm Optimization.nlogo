@@ -2,6 +2,9 @@
 
 __includes ["SBPSO.nls"]
 
+globals [
+weight-knapsack ;to represent the weight of the knapsack in the interface
+]
 
 breed [elements element] ;elements to fill the knapsack
 elements-own
@@ -39,28 +42,9 @@ to setup
 
 end
 
-
 to go
-  ask particles [ ;checking if we have found a new best personal or global and update it if its the case
-    let posPoints evalPosition posi
-    if posPoints > personal-best-val [
-      set personal-best-pos posi
-      set personal-best-val posPoints
-    ]
-    if posPoints > global-best-value [
-      set global-best-pos posi
-      set global-best-value posPoints
-      set-global-solution who
-      set weight-knapsack calculateWeight global-best-pos
-    ]
-       ;Update the velocity of the particle
-    set velocity updateVelocity who
-       ;Update the position of the particle
-    set posi applyVel posi velocity
-  ]
-  tick
+run-SBPSO-max
 end
-
 
 ;function which evaluates the current solution
 ;adds all the weights and sees if it is smaller thant the weight constraint
@@ -74,7 +58,7 @@ to-report evalPosition [solution]
       set priceSol (priceSol + price)
     ]
   ]
-  ifelse weightSol < weight-constraint [
+  ifelse weightSol <= weight-constraint [
     report priceSol
   ][
     report -999999999999990
