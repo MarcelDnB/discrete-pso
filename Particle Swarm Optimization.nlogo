@@ -1,5 +1,4 @@
 ;--------------------------------- Load PSO Module ---------------------------------------------
-
 __includes ["SBPSO.nls"]
 
 globals [
@@ -39,12 +38,39 @@ to setup
     set-global-solution who
     set weight-knapsack calculateWeight global-best-pos
   ]
-
 end
+
+
+to set-basic-values-elements ;for the graphic representation of elements
+    ask elements [
+    move-to one-of patches with [ not any? elements-here ] ;to disperse elements in the interface graphic output
+    set color blue
+    set shape "square"
+    set size patch-size * 2
+    set weight random max-weight-elements
+    set price random max-price-elements
+    output-print word "Element Num: " who
+    output-print word "Weight: " weight
+    output-print word "Price: " price
+    output-print "------"
+  ]
+end
+
 
 to go
-run-SBPSO-max
+run-SBPSO
 end
+
+
+to-report calculateWeight [sol] ;calculates the total weight of a set of elements
+  let totalWeight 0
+  foreach sol [x ->
+    ask x [
+      set totalWeight (totalWeight + weight)]
+    ]
+  report totalWeight
+end
+
 
 ;function which evaluates the current solution
 ;adds all the weights and sees if it is smaller thant the weight constraint
@@ -62,41 +88,6 @@ to-report evalPosition [solution]
     report priceSol
   ][
     report -999999999999990
-  ]
-end
-;---------------------Auxiliar functions---------------------
-to-report AI:evaluation
-  report evalPosition posi
-end
-
-
-to-report calculateWeight [sol] ;calculates the total weight of a set of elements
-  let totalWeight 0
-  foreach sol [x ->
-    ask x [
-      set totalWeight (totalWeight + weight)]
-    ]
-  report totalWeight
-end
-
-
-to rand-xy-co ;to disperse elements in the interface graphic output
-  move-to one-of patches with [ not any? elements-here ]
-end
-
-
-to set-basic-values-elements ;for the graphic representation of elements
-    ask elements [
-    rand-xy-co
-    set color blue
-    set shape "square"
-    set size patch-size * 2
-    set weight random max-weight-elements
-    set price random max-price-elements
-    output-print word "Element Num: " who
-    output-print word "Weight: " weight
-    output-print word "Price: " price
-    output-print "------"
   ]
 end
 @#$#@#$#@
@@ -129,9 +120,9 @@ ticks
 
 BUTTON
 10
-335
+295
 70
-368
+328
 NIL
 setup
 NIL
@@ -146,9 +137,9 @@ NIL
 
 BUTTON
 85
-335
+295
 155
-368
+328
 NIL
 go
 T
@@ -170,7 +161,7 @@ poblacion
 poblacion
 1
 1000
-400.0
+401.0
 1
 1
 NIL
@@ -185,7 +176,7 @@ SLIDER
 #atraction-best-personal
 0
 1
-0.2
+0.8
 0.1
 1
 NIL
@@ -200,7 +191,7 @@ SLIDER
 #atraction-best-global
 0
 1
-0.2
+0.8
 0.1
 1
 NIL
@@ -208,9 +199,9 @@ HORIZONTAL
 
 BUTTON
 170
-335
+295
 225
-368
+330
 Un paso
 go
 NIL
@@ -230,17 +221,6 @@ MONITOR
 215
 Mejor valor encontrado
 global-best-value
-4
-1
-11
-
-MONITOR
-695
-280
-805
-325
-Media:
-mean [personal-best-val] of particles
 4
 1
 11
@@ -266,21 +246,6 @@ OUTPUT
 1030
 550
 11
-
-SLIDER
-10
-170
-225
-203
-#atraction-ktor-random
-#atraction-ktor-random
-0
-10
-0.2
-0.1
-1
-NIL
-HORIZONTAL
 
 MONITOR
 650
@@ -313,9 +278,9 @@ PENS
 
 SLIDER
 10
-210
+170
 225
-243
+203
 max-weight-elements
 max-weight-elements
 10
@@ -328,9 +293,9 @@ HORIZONTAL
 
 SLIDER
 10
-250
+210
 225
-283
+243
 max-price-elements
 max-price-elements
 0
@@ -342,20 +307,20 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-660
-355
-855
-380
-RED - PART OF GLOBAL SOLUTION\nBLUE - NO PART OF GLOBAL SOLUTION
-11
+250
+430
+645
+506
+ROJO - FORMA PARTE DE LA SOLUCIÓN GLOBAL\nAZUL - NO FORMA PARTE DE LA SOLUCIÓN GLOBAL
+16
 0.0
-1
+0
 
 SLIDER
 10
-290
+250
 225
-323
+283
 particulas
 particulas
 1

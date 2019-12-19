@@ -1,4 +1,4 @@
-;# This is based on fsancho PSO.nls im using that as a template or almost :)
+;# This is based on fsancho PSO.nls im using that as a template or almost
 ;# The thing is, SBPSO works in a different way compared to PSO. One thing is that graphically we can't say that elements are near or far away from each other, because we have  
 ;# just a set of numbers with no positions and no order. Now, in terms of velocity and position, our position is a set of numbers contained in our universe set (U) and this 
 ;# position has a value returned by a fitness function and with this value we can say what position is better. A velocity is another set of numbers with variable size but
@@ -22,22 +22,21 @@ particles-own [
 ]
 
 ;---------------------------------Update velocity and position---------------------------------
-to-report updateVelocity [turt]
+to updateVelocity [turt]
+    ask particle turt [
     let unionAuxAi union (union posi personal-best-pos) global-best-pos
     let Ai filter [x -> not member? x unionAuxAi] (sort U)
     let auxSi (list posi personal-best-pos global-best-pos);Just putting up X, P.best and G.best in a list of 3 to reduce after
     let Si reduce intersect auxSi ;Intersection of X P.best and G.best
-    
     let k count elements with [member? (element who) Ai]  
     set velocity (union (prodVel (#atraction-best-personal * (random-float 1.0)) (difference personal-best-pos posi)) 
-                        (prodVel (#atraction-best-global * (random-float 1.0)) (difference global-best-pos posi))) 
+                         (prodVel (#atraction-best-global * (random-float 1.0)) (difference global-best-pos posi))) 
     set velocity union velocity (k-tournamentSelection k posi)
-    let auxVel round((random-float 1.0) * (length Si))
-    set velocity union velocity n-of auxVel Si
-  
+    let auxVel ((random-float 1.0) * (length Si))
+    set velocity union velocity (list [] (n-of auxVel Si))
     let temp sentence (last velocity) (n-of auxVel Si)
     set velocity (list first velocity temp)
-    report velocity
+  ]
 end
 
 
@@ -50,7 +49,7 @@ to-report applyVel [posit vel] ;apply a velocity to a position (for position upd
 end
 
 
-to run-SBPSO-max
+to run-SBPSO
   ask particles [ ;checking if we have found a new best personal or global and update it if its the case
     let posPoints evalPosition posi
     if posPoints > personal-best-val [
@@ -62,31 +61,10 @@ to run-SBPSO-max
       set global-best-value posPoints
       set-global-solution who
       set weight-knapsack calculateWeight global-best-pos
+      print word "\nEncontrado nuevo mejor global!!: " global-best-pos
     ]
        ;Update the velocity of the particle
-    set velocity updateVelocity who
-       ;Update the position of the particle
-    set posi applyVel posi velocity
-  ]
-  tick
-end
-
-
-to run-SBPSO-min
-  ask particles [ ;checking if we have found a new best personal or global and update it if its the case
-    let posPoints evalPosition posi
-    if posPoints < personal-best-val [
-      set personal-best-pos posi
-      set personal-best-val posPoints
-    ]
-    if posPoints < global-best-value [
-      set global-best-pos posi
-      set global-best-value posPoints
-      set-global-solution who
-      set weight-knapsack calculateWeight global-best-pos
-    ]
-       ;Update the velocity of the particle
-    set velocity updateVelocity who
+      updateVelocity who
        ;Update the position of the particle
     set posi applyVel posi velocity
   ]
@@ -97,7 +75,9 @@ end
 
 ;---------------------------------OPERATORS---------------------------------
 to-report union [set1 set2] ;makes the union of two sets
-  let ret se set1 set2
+  let conj1 se (first set1) (first set2)
+  let conj2 se (last set1) (last set2)
+  let ret (list conj1 conj2)
   report remove-duplicates ret
 end
 
@@ -110,8 +90,15 @@ end
 
 
 to-report prodVel [eta V] ;picks a random subset from V with probability of eta
-  let n floor (eta * length V)
-  report n-of n V
+  let n1 floor (eta * length first V)
+  let n2 floor (eta * length last V)
+  let aux1 n-of n1 (first V)
+  let aux2 n-of n2 (last V)
+  let ret (list aux1 aux2)
+;  let n floor (eta * length V) ;if we consider a list of pairs {(+,3) (+,4) (-,2) (+,6)..}
+;  print (ret)
+;  report n-of n V
+  report ret
 end
 
 

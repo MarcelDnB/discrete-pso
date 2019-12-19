@@ -1,3 +1,18 @@
+# Índice
+
+1. [¿Qué es SBPSO?](#Optimización con PSO basado en conjuntos (SBPSO))
+   - [Explicación simple del algoritmo](##Explicación simple del algoritmo)
+   - [Definición de los operadores](##Definición de los operadores)
+2. [¿Cómo funciona la librería SBPSO?](#¿Cómo funciona la librería SBPSO?)
+   - [Explicación general](##Explicación general)
+   - [Explicación de las funciones en detalle](##Explicación de las funciones en detalle)
+
+3. [Problema de la mochila con SBPSO](#Problema de la mochila con SBPSO)
+   - [¿Cómo se ha implementado?](##¿Cómo se ha implementado?)
+   - [¿Cómo se usa (interfaz gráfica)?](##¿Cómo se usa (interfaz gráfica)?)
+
+
+
 # Optimización con PSO basado en conjuntos (SBPSO)
 
 La implementación del algoritmo SBPSO que se verá a continuación esta basada en el trabajo de fin de Máster de Joost Langeveld, por lo que en esta descripción de nuestra implementación vamos a hacer numerosas referencias a este trabajo aunque hemos hecho ciertos cambios.
@@ -38,7 +53,9 @@ Si encontramos un valor mejor que el mejor personal habrá que sustituirlo por e
 
 
 
-## ¿Cómo funciona la librería SBPSO?
+# ¿Cómo funciona la librería SBPSO?
+
+## Explicación general
 
 En primer lugar, tenemos 3 variables globales, `global-best-pos`, `global-best-value` y `U`, donde se indica la mejor posición global, el mejor valor global (de dicha posición), y el espacio de búsqueda U respectivamente.
 
@@ -48,25 +65,84 @@ La velocidad la hemos considerado como  una lista de 2 sub-listas donde cada sub
 
 ##### La librería cuenta con dos funciones fundamentales que son:
 
-`updateVelocity:`Función encargada de actualizar la velocidad en cada iteración de todas las partículas que hayamos creado.  Para ello hemos aplicado la fórmula con unos pequeños cambios:
+**`updateVelocity:`**Función encargada de actualizar la velocidad en cada iteración de todas las partículas que hayamos creado.  Para ello hemos aplicado la fórmula con unos pequeños cambios:
 
 ![](C:\Users\Marcel\OneDrive - UNIVERSIDAD DE SEVILLA\GitHub\discrete-pso\formula.jpg)
 
 El cambio que hay en la implementación comparado con la fórmula anterior es en la ultima parte    (c4r4)⊙−Si(t)) donde en nuestra implementación seleccionamos al azar elementos de Si(t).
 
-`applyVel:` Función que se encarga de aplicar una velocidad a una posición.
+**`applyVel:`** Función que se encarga de aplicar una velocidad a una posición.
 
 
 
-Para poder hacer las dos funciones descritas anteriormente es necesario definir los operadores necesarios que se encontraran en la parte de OPERATORS (delimitada por comentario) dentro de la librería. Además la librería contendrá otras funciones para inicialización y auxiliares para actualizar el output con el mejor conjunto global encontrado.
+Para poder hacer las dos funciones descritas anteriormente es necesario definir los operadores necesarios que se encontraran en la parte de OPERATORS (delimitada por comentario en el código) dentro de la librería. Además la librería contendrá otras funciones para inicialización y auxiliares para actualizar el output con el mejor conjunto global encontrado.
 
-Hemos decidido mantener fuera la función general que controla las iteraciones para dejar mas libertad a la hora de utilizar la librería para un problema, aunque podría ir perfectamente dentro de la librería, *función `go` *
-
-
+Además de las funciones vistas anteriormente necesitamos saber si nos encontramos un valor mejor en cada una de las iteraciones y actualizar los valores que teníamos hasta entonces, para ello están las dos funciones `run-SBPSO-max` y `run-SBPSO-min`, con las cuales vamos a buscar el máximo y el mínimo respectivamente, pero además de eso estamos actualizando tanto la velocidad como la posición de cada una de las partículas (si tenemos varias trabajando).
 
 
 
+## Explicación de las funciones en detalle
+
+`updateVelocity:`Aplicamos la formula anteriormente vista con la ayuda de los operadores que tenemos definidos.
 
 
 
+`applyVel:`Dada una velocidad ->{ (elementos a añadir), (elementos a eliminar) }  y una posición ->{e1,e2,e3..en}, aplicamos los cambios que nos indica la velocidad a la posición. Para ello mediante un filtro eliminamos de la posición los elementos que nos indica la velocidad en su segunda sub-lista y mediante un `sentence` unificamos la posición con la primera sub-lista de la velocidad.
+
+
+
+`run-SBPSO:`Esta función se encarga de la actualización global de todas las variables. Preguntamos a todas las partículas la posición en la que está actualmente y comprobamos si es mayor que el mejor personal de la partícula y si es así le asignamos al mejor personal el nuevo mejor valor, lo mismo ocurre con la variable mejor global, si encontramos una mejor que el mejor global cambiamos este con el nuevo mejor valor, eso si, el valor global es compartido por todas las partículas. En esta función también llamamos a dos funciones que se van a encargar de actualizar la velocidad de cada partícula y actualizar su posición.
+
+
+
+`union:`Mediante un `sentence` unificamos las dos listas que se nos pasa y eliminamos los duplicados.
+
+
+
+`	difference:`Tomamos 2 posiciones y vamos a devolver una velocidad. Para ello vamos a considerar los elementos que están en set1 y no en set2 como elementos a añadir y los elementos que están en set2 y no en set1 como elementos a eliminar, y con estos formamos la velocidad que devolveremos que es una lista de sub-listas de las dos operaciones descritas anteriormente.
+
+
+
+`prodVel:`Se nos pasa una variable eta y una velocidad, como eta tiene un valor comprendido entre [0,1] si multiplicamos ese valor por el tamaño de las dos sub-listas de la velocidad obtenemos un valor diferente según la probabilidad varíe, posteriormente vamos a coger un número de elementos según nos indique el valor calculado anteriormente.
+
+
+
+`k-tournamentSelection:` Es una función que como su nombre indica se trata de un tournamentSelection, que selecciona aleatoriamente elementos y los añade a la posición para posteriormente evaluar la nueva posición con el elemento aleatorio añadido aleatoriamente. Esto lo hace un número N de veces y finalmente devolvemos la posición con los elementos añadidos que haya tenido mas valor.
+
+
+
+`set-random-solution:` Esta función esta solamente para inicializar. Le decimos a todas las partículas que tomen unos elementos aleatorios del espacio de búsqueda básicamente para que tengan un conjunto inicial como posición, además también inicializamos su mejor personal con un elemento aleatorio.
+
+
+
+`set-global-solution:` Sirve para actualizar el mejor global gráficamente, primero para el conjunto anterior de mejor global ponemos todos los elementos en azul, lo que indica que no están en el conjunto y posteriormente cogemos el nuevo mejor global y cada elemento perteneciente lo ponemos en rojo, lo que indica que sí están en el mejor global.
+
+
+
+# Problema de la mochila con SBPSO
+
+## ¿Cómo se ha implementado?
+
+Para poner a prueba la librería descrita anteriormente vamos a implementar el problema de la mochila con SBPSO. 
+
+Para ello vamos a necesitar una raza para los elementos/objetos con los que vamos a trabajar, y cada uno de estos elementos tendrá un peso y un precio. Vamos a necesitar inicializar bastantes variables y crear la población de las partículas y la de los elementos, para ello tenemos la función `setup`.  Aparte de esto vamos a necesitar implementar una función de evaluación que nos diga cuando una posición de una partícula es mejor o peor, luego como necesitamos el máximo valor vamos a devolver siempre el valor que tenga una posición viendo el valor que tiene cada uno de los elementos contenidos en esta, pero necesitamos no pasarnos del límite de peso, por lo que cuando exista una posición que se pase de ese límite devolveremos un valor negativo absurdamente grande para asegurar que nunca nos pasaremos de dicho límite.
+
+## ¿Cómo se usa (interfaz gráfica)?
+
+En la interfaz gráfica tenemos varias variables globales que podemos ir modificando:
+
+1. `poblacion:`Será la cantidad de elementos/objetos dentro del espacio de búsqueda.
+2. `#atraction-best-personal:`Su valor está comprendido entre [0,1], y corresponde a la variable de atracción a la mejor posición personal encontrada. (Valor propio de la librería)
+3. `#atraction-best-global:`Su valor está comprendido entre [0,1], y corresponde a la variable de atracción a la mejor posición global encontrada. (Valor propio de la librería)
+4. `weight-constraint:`Es el límite de peso que nosotros queramos poner, es decir, no será valida ninguna posición que se pase de este valor y esto es posible gracias a la función de evaluación vista anteriormente.
+5. `max-weight-elements y max-price-elements:`Estas variables determinan el peso y valor máximo de los elementos que generamos aleatoriamente para el ejemplo.
+6. `particulas:`Determina el número de partículas que estarán activas cuando ejecutemos el programa.
+
+Para comenzar con el problema necesitamos presionar el botón 'setup' para inicializar variables, numero de partículas, etc. Podemos ejecutarlo paso a paso mediante el botón 'Un paso' o ejecutar continuamente los pasos hasta que nosotros decidamos mediante 'go'.
+
+La interfaz gráfica también dispone de una grafica que nos muestra el conjunto de todos los elementos que tenemos en nuestro espacio de búsqueda, cuando el algoritmo se esté ejecutando iremos viendo que algunos de los elementos de color azul cambiarán su color a rojo. Estamos considerando que los elementos de color azul no pertenecen a la mejor posición global encontrada hasta el momento mientras que los de color rojo si, luego a medida que el algoritmo vaya avanzando iremos viendo como cambian los elementos de la mejor posición global. También podremos ver los elementos de dicha mejor posición global en la terminal. 
+
+Existe también una grafica que nos va mostrando la mejora del valor total de la mejor posición global hasta el momento, e iremos viendo como sube a medida que avanza el algoritmo. Junto a ella tenemos dos monitores que nos indicarán el valor de la mejor posición encontrada hasta el momento y el peso de esa posición global.
+
+Para ver todos elementos hay un cuadro de salida que nos muestra todos los elementos aleatorios que se han creado, el número correspondiente al elemento junto al peso y el valor.
 
