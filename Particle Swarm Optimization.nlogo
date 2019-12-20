@@ -332,34 +332,19 @@ NIL
 HORIZONTAL
 
 @#$#@#$#@
-# Índice
-
-1. [¿Qué es SBPSO?](#Optimización con PSO basado en conjuntos (SBPSO))
-   - [Explicación simple del algoritmo](##Explicación simple del algoritmo)
-   - [Definición de los operadores](##Definición de los operadores)
-2. [¿Cómo funciona la librería SBPSO?](#¿Cómo funciona la librería SBPSO?)
-   - [Explicación general](##Explicación general)
-   - [Explicación de las funciones en detalle](##Explicación de las funciones en detalle)
-
-3. [Problema de la mochila con SBPSO](#Problema de la mochila con SBPSO)
-   - [¿Cómo se ha implementado?](##¿Cómo se ha implementado?)
-   - [¿Cómo se usa (interfaz gráfica)?](##¿Cómo se usa (interfaz gráfica)?)
-4. [Bibliografía](#Bibliografía)
-
-
-
-# Optimización con PSO basado en conjuntos (SBPSO)
+# Ver mejor en el repositorio
+# Optimización con PSO basado en conjuntos SBPSO
 
 La implementación del algoritmo SBPSO que se verá a continuación esta basada en el trabajo de fin de Máster de Joost Langeveld, por lo que en esta descripción de nuestra implementación vamos a hacer numerosas referencias a este trabajo aunque hemos hecho ciertos cambios.
 
 ##### Vamos a describir a continuación los conceptos del SBPSO:
 
 1.  En primer lugar tenemos que definir un espacio de búsqueda al igual que en PSO, solo que en este caso nuestro espacio de búsqueda en vez de ser un espacio continuo vamos a tener un espacio discreto y por lo tanto con un número finito de elementos. Lo vamos a representar con U, donde U es un conjunto de elementos.
-2.  Vamos a necesitar una variable posición de las partículas, a diferencia de PSO donde la posición es una coordenada, en SBPSO estará formada por un conjunto de elementos del espacio de búsqueda (U).    La vamos a representar con Xi, donde Xi es un conjunto de ciertos elementos.
-3.  Vamos a tener al igual que en PSO una velocidad de las partículas, en PSO la velocidad es una magnitud que se representa numéricamente, mientras que en SBPSO tendremos un conjunto de expresiones que nos indicaran si tenemos que añadir o eliminar elementos de una posición dada.           La vamos a representar con Vi, donde Vi es una lista de sub-listas que contendrán elementos que tenemos que modificar.
-4.  Necesitaremos una función objetivo que habrá que optimizar. La vamos a representar con f.
-5.  Cada una de las partículas va a tener una variable local donde guarde su mejor valor personal encontrado hasta el momento. La vamos a representar con Yi, donde Yi es un conjunto de elementos.
-6.  Hay también una variable global en la que se guardará el mejor valor encontrado por las partículas. La vamos a representar como ^Yi, donde ^Yi es un conjunto de elementos
+2. Vamos a necesitar una variable posición de las partículas, a diferencia de PSO donde la posición es una coordenada, en SBPSO estará formada por un conjunto de elementos del espacio de búsqueda (U).    La vamos a representar con Xi, donde Xi es un conjunto de ciertos elementos.
+3. Vamos a tener al igual que en PSO una velocidad de las partículas, en PSO la velocidad es una magnitud que se representa numéricamente, mientras que en SBPSO tendremos un conjunto de expresiones que nos indicaran si tenemos que añadir o eliminar elementos de una posición dada.           La vamos a representar con Vi, donde Vi es una lista de sub-listas que contendrán elementos que tenemos que modificar.
+4. Necesitaremos una función objetivo que habrá que optimizar. La vamos a representar con f.
+5. Cada una de las partículas va a tener una variable local donde guarde su mejor valor personal encontrado hasta el momento. La vamos a representar con Yi, donde Yi es un conjunto de elementos.
+6. Hay también una variable global en la que se guardará el mejor valor encontrado por las partículas. La vamos a representar como ^Yi, donde ^Yi es un conjunto de elementos
 
 
 
@@ -369,13 +354,15 @@ Para explicar el funcionamiento del algoritmo vamos a suponer que solo tenemos u
 
 La posición de la partícula estará formada por ciertos elementos Xi={e1,e2...,en} de nuestro espacio de búsqueda U, esta posición tendrá cierto valor que se calculara en cada iteración mediante la función objetivo y de esta manera sabremos si la posición en la que esta es buena o mala. En las distintas iteraciones la posición de la partícula deberá cambiar y esto es posible gracias a la velocidad. La velocidad es con conjunto de ciertas expresiones que nos indicaran como cambiar la posición de la partícula, es decir, nos indicará que elementos tenemos que añadir y cuales eliminar de forma que en cada iteración la posición de la partícula vaya variando y por supuesto para cada una de estas diferentes posiciones se calculara su valor.
 
-![](C:\Users\Marcel\OneDrive - UNIVERSIDAD DE SEVILLA\GitHub\discrete-pso\particula-u.jpg)
+![](images/particula-u.jpg)
 
 Como vemos en la imagen a) tenemos representada una partícula conteniendo 5 elementos del espacio de búsqueda. Es muy importante tener en cuenta que los elementos del espacio no tienen orden, es decir, que para los elementos de la partícula no podemos decir que uno esté mas cerca del otro ya que es un conjunto y todos los elementos están igual de cerca unos de otros. En la imagen b) tenemos representado el mejor personal de la partícula, donde los rombos indican que esos elementos están dentro de su posición y los asteriscos indican que están fuera.
 
 Si encontramos un valor mejor que el mejor personal habrá que sustituirlo por el valor encontrado, y por otro lado si encontramos uno mejor que el mejor global se cambiará también.
 
+![](images/particula-ex.jpg)
 
+Para ponernos mas en contexto podemos ver en la figura a) una posición en el tiempo t y la misma posición en el siguiente instante de tiempo. Como podemos observar la velocidad ha indicado que había que eliminar los elementos representados con un rombo y añadir los que están representados por asteriscos. Y en la figura b) podemos ver la posición actual junto a la mejor local y global.
 
 ## Definición de los operadores
 
@@ -388,7 +375,7 @@ Si encontramos un valor mejor que el mejor personal habrá que sustituirlo por e
 
 
 
-# ¿Cómo funciona la librería SBPSO?
+# Funcionamiento de la librería SBPSO
 
 ## Explicación general
 
@@ -400,15 +387,15 @@ La velocidad la hemos considerado como  una lista de 2 sub-listas donde cada sub
 
 ##### La librería cuenta con dos funciones fundamentales que son:
 
-**`updateVelocity:`**Función encargada de actualizar la velocidad en cada iteración de todas las partículas que hayamos creado.  Para ello hemos aplicado la fórmula con unos pequeños cambios:
+`updateVelocity:`Función encargada de actualizar la velocidad en cada iteración de todas las partículas que hayamos creado.  Para ello hemos aplicado la fórmula con unos pequeños cambios:
 
-![](C:\Users\Marcel\OneDrive - UNIVERSIDAD DE SEVILLA\GitHub\discrete-pso\formula.jpg)
+![](images/formula.jpg)
 
 El cambio que hay en la implementación comparado con la fórmula anterior es en la ultima parte    (c3r3⊙+Ai(t))⊕(c4r4)⊙−Si(t)) donde en nuestra implementación le hemos hecho algunos cambios al operador ⊙+ para que no necesite c3 y r3 y en la siguiente expresión seleccionamos al azar elementos de Si(t) sin necesitar c3 y r4.
 
-**`applyVel:`** Función que se encarga de aplicar una velocidad a una posición.
+`applyVel:` Función que se encarga de aplicar una velocidad a una posición.
 
-
+![](images\formula-pos.jpg)
 
 Para poder hacer las dos funciones descritas anteriormente es necesario definir los operadores necesarios que se encontraran en la parte de OPERATORS (delimitada por comentario en el código) dentro de la librería. Además la librería contendrá otras funciones para inicialización y auxiliares para actualizar el output con el mejor conjunto global encontrado.
 
@@ -462,7 +449,7 @@ Para poner a prueba la librería descrita anteriormente vamos a implementar el p
 
 Para ello vamos a necesitar una raza para los elementos/objetos con los que vamos a trabajar, y cada uno de estos elementos tendrá un peso y un precio. Vamos a necesitar inicializar bastantes variables y crear la población de las partículas y la de los elementos, para ello tenemos la función `setup`.  Aparte de esto vamos a necesitar implementar una función de evaluación que nos diga cuando una posición de una partícula es mejor o peor, luego como necesitamos el máximo valor vamos a devolver siempre el valor que tenga una posición viendo el valor que tiene cada uno de los elementos contenidos en esta, pero necesitamos no pasarnos del límite de peso, por lo que cuando exista una posición que se pase de ese límite devolveremos un valor negativo absurdamente grande para asegurar que nunca nos pasaremos de dicho límite.
 
-## ¿Cómo se usa (interfaz gráfica)?
+## Uso de la interfaz gráfica
 
 En la interfaz gráfica tenemos varias variables globales que podemos ir modificando:
 
@@ -486,7 +473,7 @@ Para ver todos elementos hay un cuadro de salida que nos muestra todos los eleme
 # Bibliografía
 
 1. http://www.cs.us.es/~fsancho/ficheros/IA2019/Set-BasedPSO.pdf (Trabajo de Máster)
-2. [https://github.com/fsancho/IA/tree/master/09.%20Optimization](https://github.com/fsancho/IA/tree/master/09. Optimization)
+2. https://github.com/fsancho/IA/tree/master/09.%20Optimization
 3. https://ccl.northwestern.edu/netlogo/docs/programming.html
 4. https://www.youtube.com/watch?v=JhgDMAm-imI
 5. http://netlogo-users.18673.x6.nabble.com/
