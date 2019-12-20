@@ -74,7 +74,7 @@ El cambio que hay en la implementación comparado con la fórmula anterior es en
 
 `applyVel:` Función que se encarga de aplicar una velocidad a una posición.
 
-![](images\formula-pos.jpg)
+![](images/formula-pos.jpg)
 
 Para poder hacer las dos funciones descritas anteriormente es necesario definir los operadores necesarios que se encontraran en la parte de OPERATORS (delimitada por comentario en el código) dentro de la librería. Además la librería contendrá otras funciones para inicialización y auxiliares para actualizar el output con el mejor conjunto global encontrado.
 
