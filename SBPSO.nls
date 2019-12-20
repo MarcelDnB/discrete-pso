@@ -3,8 +3,9 @@
 ;# just a set of numbers with no positions and no order. Now, in terms of velocity and position, our position is a set of numbers contained in our universe set (U) and this 
 ;# position has a value returned by a fitness function and with this value we can say what position is better. A velocity is another set of numbers with variable size but
 ;# it contains also an operator which indicates an addition or subtraction of that element in our current set of position, so if we have something like this:
-;# Position: X = {a, c} (considering size of 2 elements it can be more..) and Velocity: V = {(+,b), (−, c)} (considering size of 2 pairs of elements it can be more..)
-;# then we will get a returned position of: ResultPosition: X'= {a,b}. 
+;# Position: X = {a, c} (considering size of 2 elements it can be more..) and Velocity: V = {(+,b), (−, c)} (considering size of 2 pairs of elements it can be more..) but Fernando
+;# suggested to have a list of 2 sublists considering the first sublist elements to add to the position and the second sublist elements to remove from the position.
+;# then we will get a returned position of: ResultPosition: X'= {a,b}.
 ;# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 globals [
   global-best-pos ;gonna be a set which stores the global best set (position)

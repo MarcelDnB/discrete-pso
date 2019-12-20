@@ -10,6 +10,7 @@
 3. [Problema de la mochila con SBPSO](#Problema de la mochila con SBPSO)
    - [¿Cómo se ha implementado?](##¿Cómo se ha implementado?)
    - [¿Cómo se usa (interfaz gráfica)?](##¿Cómo se usa (interfaz gráfica)?)
+4. [Bibliografía](#Bibliografía)
 
 
 
@@ -30,7 +31,7 @@ La implementación del algoritmo SBPSO que se verá a continuación esta basada 
 
 ## Explicación simple del algoritmo
 
-Para explicar el funcionamiento del algoritmo voy a suponer que solo tenemos una sola partícula buscando, para que sea mas fácil de ver el funcionamiento global.
+Para explicar el funcionamiento del algoritmo vamos a suponer que solo tenemos una sola partícula buscando, para que sea mas fácil de ver el funcionamiento global.
 
 La posición de la partícula estará formada por ciertos elementos Xi={e1,e2...,en} de nuestro espacio de búsqueda U, esta posición tendrá cierto valor que se calculara en cada iteración mediante la función objetivo y de esta manera sabremos si la posición en la que esta es buena o mala. En las distintas iteraciones la posición de la partícula deberá cambiar y esto es posible gracias a la velocidad. La velocidad es con conjunto de ciertas expresiones que nos indicaran como cambiar la posición de la partícula, es decir, nos indicará que elementos tenemos que añadir y cuales eliminar de forma que en cada iteración la posición de la partícula vaya variando y por supuesto para cada una de estas diferentes posiciones se calculara su valor.
 
@@ -38,9 +39,11 @@ La posición de la partícula estará formada por ciertos elementos Xi={e1,e2...
 
 Como vemos en la imagen a) tenemos representada una partícula conteniendo 5 elementos del espacio de búsqueda. Es muy importante tener en cuenta que los elementos del espacio no tienen orden, es decir, que para los elementos de la partícula no podemos decir que uno esté mas cerca del otro ya que es un conjunto y todos los elementos están igual de cerca unos de otros. En la imagen b) tenemos representado el mejor personal de la partícula, donde los rombos indican que esos elementos están dentro de su posición y los asteriscos indican que están fuera.
 
-Si encontramos un valor mejor que el mejor personal habrá que sustituirlo por el valor encontrado, y por otro lado si encontramos uno mejor que el mejor global se cambiará también por el encontrado.
+Si encontramos un valor mejor que el mejor personal habrá que sustituirlo por el valor encontrado, y por otro lado si encontramos uno mejor que el mejor global se cambiará también.
 
+![](C:\Users\Marcel\OneDrive - UNIVERSIDAD DE SEVILLA\GitHub\discrete-pso\particula-ex.jpg)
 
+Para ponernos mas en contexto podemos ver en la figura a) una posición en el tiempo t y la misma posición en el siguiente instante de tiempo. Como podemos observar la velocidad ha indicado que había que eliminar los elementos representados con un rombo y añadir los que están representados por asteriscos. Y en la figura b) podemos ver la posición actual junto a la mejor local y global.
 
 ## Definición de los operadores
 
@@ -69,7 +72,7 @@ La velocidad la hemos considerado como  una lista de 2 sub-listas donde cada sub
 
 ![](C:\Users\Marcel\OneDrive - UNIVERSIDAD DE SEVILLA\GitHub\discrete-pso\formula.jpg)
 
-El cambio que hay en la implementación comparado con la fórmula anterior es en la ultima parte    (c4r4)⊙−Si(t)) donde en nuestra implementación seleccionamos al azar elementos de Si(t).
+El cambio que hay en la implementación comparado con la fórmula anterior es en la ultima parte    (c3r3⊙+Ai(t))⊕(c4r4)⊙−Si(t)) donde en nuestra implementación le hemos hecho algunos cambios al operador ⊙+ para que no necesite c3 y r3 y en la siguiente expresión seleccionamos al azar elementos de Si(t) sin necesitar c3 y r4.
 
 **`applyVel:`** Función que se encarga de aplicar una velocidad a una posición.
 
@@ -77,7 +80,7 @@ El cambio que hay en la implementación comparado con la fórmula anterior es en
 
 Para poder hacer las dos funciones descritas anteriormente es necesario definir los operadores necesarios que se encontraran en la parte de OPERATORS (delimitada por comentario en el código) dentro de la librería. Además la librería contendrá otras funciones para inicialización y auxiliares para actualizar el output con el mejor conjunto global encontrado.
 
-Además de las funciones vistas anteriormente necesitamos saber si nos encontramos un valor mejor en cada una de las iteraciones y actualizar los valores que teníamos hasta entonces, para ello están las dos funciones `run-SBPSO-max` y `run-SBPSO-min`, con las cuales vamos a buscar el máximo y el mínimo respectivamente, pero además de eso estamos actualizando tanto la velocidad como la posición de cada una de las partículas (si tenemos varias trabajando).
+Además de las funciones vistas anteriormente necesitamos saber si nos encontramos un valor mejor en cada una de las iteraciones y actualizar los valores que teníamos hasta entonces, para ello está la función `run-SBPSO`, con la cual vamos a buscar el máximo, pero además de eso estamos actualizando tanto la velocidad como la posición de cada una de las partículas (si tenemos varias trabajando).
 
 
 
@@ -99,7 +102,7 @@ Además de las funciones vistas anteriormente necesitamos saber si nos encontram
 
 
 
-`	difference:`Tomamos 2 posiciones y vamos a devolver una velocidad. Para ello vamos a considerar los elementos que están en set1 y no en set2 como elementos a añadir y los elementos que están en set2 y no en set1 como elementos a eliminar, y con estos formamos la velocidad que devolveremos que es una lista de sub-listas de las dos operaciones descritas anteriormente.
+`difference:`Tomamos 2 posiciones y vamos a devolver una velocidad. Para ello vamos a considerar los elementos que están en set1 y no en set2 como elementos a añadir y los elementos que están en set2 y no en set1 como elementos a eliminar, y con estos formamos la velocidad que devolveremos que es una lista de sub-listas de las dos operaciones descritas anteriormente.
 
 
 
@@ -146,3 +149,12 @@ Existe también una grafica que nos va mostrando la mejora del valor total de la
 
 Para ver todos elementos hay un cuadro de salida que nos muestra todos los elementos aleatorios que se han creado, el número correspondiente al elemento junto al peso y el valor.
 
+
+
+# Bibliografía
+
+1. http://www.cs.us.es/~fsancho/ficheros/IA2019/Set-BasedPSO.pdf (Trabajo de Máster)
+2. https://github.com/fsancho/IA/tree/master/09.%20Optimization
+3. https://ccl.northwestern.edu/netlogo/docs/programming.html
+4. https://www.youtube.com/watch?v=JhgDMAm-imI
+5. http://netlogo-users.18673.x6.nabble.com/
